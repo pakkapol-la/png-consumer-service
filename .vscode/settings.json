@@ -1,0 +1,19 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/__pycache__": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/typings": true,
+        "**/bower_components": true,
+        "**/__pycache__": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.rulers": [80],
+    "editor.wrappingColumn": -1
+}

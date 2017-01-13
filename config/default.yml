@@ -1,0 +1,72 @@
+
+push-notification-service:
+  fcm-service:    
+    #url-push: https://gcm-http.googleapis.com/gcm/send
+    #api-key: AIzaSyBbilH9rvO5weGHDnmwao6sb7ByGKuKFvo
+    sender-id: 548015416377
+    url-push: https://fcm.googleapis.com/fcm/send
+    api-key: AIzaSyAr2F88VDAeb9IysuhY4B7o8-Y9zse6NnY
+    dry-run: true
+  rabbit-mq:
+    q-url: amqp://127.0.0.1:5672
+    reconnect-time: 5000
+    durable: true
+    persistent: true
+    q-online: online_queue
+    q-batch: batch_queue
+
+
+#set mockup data
+mock-app-id-set:
+    gap:
+      platform: ANDROID
+      token: APA91bEK8cIEtia7e_KuM3C04nakPp3OJ6eA4QpItPm08dQbg0dR0H51KIWxs7t7XXC6TphZdBGiAXL95coMonzTJ88EnlDHLYtumrwLJFSW1Lbc5NtosWaCQ_DT6wuosLmAvUmlLe9CJJNoW--weM8jdHh4xcbF2Q
+    rit:
+      platform: ANDROID
+      #token: APA91bH1BG5Kpl7QwHWRZBlhKfgnBKGs9jJzEmvZntfnGz8x5nvP30oocU4LPKnba1XiphsPylslHQs4KWYrtqgTuynQ2ttVkEaaBGvfu0QK43T3RpNEG5Zll5TTKl1swODewh_hPIlE-EoONgDAT5gcQuZumxFZfw
+      token: dicxg4dMp5Y:APA91bGTIHN6U2ztIarHJa4ONpIuH11JcYG7DnpWDPcVz_Lfj324ARTHDNSE2M0oUs8Basin0YovbGbMcbwKGDo1gy4KuXufqEQp3EpSO0aRWWJgTFi4_XPOUKQw7vo-FqUmK6TebryG
+
+
+
+access-token-secret:
+refresh-token-secret:
+
+circuit-breaker:
+  request-timeout: 5000
+  fail-limit: 5
+  success-limit: 5
+  reset-time: 5000
+  # unexpected-status:
+  # - 500
+
+services:
+  deposit:
+    endpoint: https://...
+  transaction:
+    endpoint: https://...
+  list:
+    endpoint: https://...
+
+third-party-services:
+  cbs:
+    endpoint: https://...
+  esb:
+    endpoint: https://...
+
+mpng-service:
+  service-port: 8090
+  worker-number: 4
+
+  certificate:
+    certificate-file: path/to/file
+    primary-key-file: path/to/file
+
+  logging:
+    format: "%Y-%m-%d %H:%M:%S [%Type] %Message"
+    dumping-interval: 3000
+    log-file: /home/devadm/applog
+
+  mongodb:
+    connection-url: "mongodb://localhost:27017/myproject"
+    # connection-timeout: 60000
+    reconnect-time: 5000

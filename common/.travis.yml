@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+- "6"
+
+before_install:
+- npm install -g yarn
+
+install:
+- yarn
+
+script:
+- npm run coverage
+
+after_success:
+- npm run upload-coverage
+
+notifications:
+  email: false

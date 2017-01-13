@@ -1,0 +1,35 @@
+global-boolean: true
+
+global-scope:
+  number: 1234
+  text: Hello
+
+settings:
+  number: 12.34
+
+shared:
+  text: "Blah blah"
+  list:
+  - 1
+  - 2
+  - 3
+
+service-name:
+  local-text: Bleh
+
+  local-scope:
+    number: 4321
+    text: olleH
+
+  settings:
+    number: 43.21
+    list:
+    - A
+    - B
+    - C
+
+  shared:
+    list:
+    - 9
+    - 8
+    - 7
