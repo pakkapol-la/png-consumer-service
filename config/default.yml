@@ -8,6 +8,7 @@ push-notification-service:
     api-key: AIzaSyAr2F88VDAeb9IysuhY4B7o8-Y9zse6NnY
     dry-run: true
   rabbit-mq:
+    #q-url: amqp://203.154.222.42:5672
     q-url: amqp://127.0.0.1:5672
     reconnect-time: 5000
     durable: true
@@ -64,9 +65,10 @@ mpng-service:
   logging:
     format: "%Y-%m-%d %H:%M:%S [%Type] %Message"
     dumping-interval: 3000
-    log-file: /home/devadm/applog
+    log-file: /home/devadm/producer/app/logs
 
   mongodb:
-    connection-url: "mongodb://localhost:27017/myproject"
+    #connection-url: "mongodb://203.154.222.42:27017/png"
+    connection-url: "mongodb://127.0.0.1:27017/png"
     # connection-timeout: 60000
     reconnect-time: 5000

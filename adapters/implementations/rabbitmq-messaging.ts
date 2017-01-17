@@ -12,6 +12,9 @@ import { RequestFCMBO } from "../../bo/fcm/requestfcmbo";
 import { ResponseFCMBO } from "../../bo/fcm/responsefcmbo";
 import { ResultBO } from "../../bo/fcm/result";
 import { NotificationBO } from "../../bo/fcm/notificationbo";
+import * as Routes from "../../routes";
+import PushMessages from "../../models/pushmessages";
+import * as PushMessagesImpl from "../../adapters/implementations/pushfcm-serviceimpl";
 
 export interface RabbitMQOptions {
     reconnectionTime?: number;
@@ -148,57 +151,97 @@ export class RabbitMQBroker implements messaging.MessageBroker {
 
                                 Logger.info(MainConst.logPatternProcessId(process.pid, "MessageBroker Receiver : "+ msg.content.toString()));
 
-                                let msgContent: messaging.MessageContent = JSON.parse(msg.content.toString());
+                                let msg_content: messaging.MessageContent = JSON.parse(msg.content.toString());
 
-                                let req_push: RequestFCMBO = msgContent.content;
+                                let msg_db = prepareDBMsgOnReceive(msg_content);
 
-                                let api_key = msgContent.server_key;
+                                let req_push: RequestFCMBO = msg_content.content;
+
+                                let api_key = msg_content.server_key;
 
                                 let fcm_service: PushFCMService = new PushFCMServiceImpl();
 
-                                let req_id = msgContent.request_id;
+                                let req_id = msg_content.request_id;
 
-                                fcm_service.send(msgContent.request_id, api_key, req_push).then(resp_push => {
+                                msg_db.sent_time = new Date();
+                               
+                                Routes.getFactoryService().db_service.updatePushMessagesBeforeSent(msg_db).then(push_message_document => {
 
-                                    //Logger.info(MainConst.logPattern(req_id, process.pid, "FCM result : " + JSON.stringify(resp_push)));
-                                    
-                                    let result: ResultBO
-                                    if ( resp_push.failure == 0 && resp_push.success > 0 ) {
-                                        if (resp_push.canonical_ids > 0) {
+                                    fcm_service.send(msg_content.request_id, api_key, req_push, msg_db).then(push_result => {
 
-                                            result = resp_push.results[0] as ResultBO;
-                                            //responseMessage = createResponseSuccess(result.message_id);
+                                        //Logger.info(MainConst.logPattern(req_id, process.pid, "FCM result : " + JSON.stringify(resp_push)));
+                                        
+                                        let resp_push = push_result.push_result as ResponseFCMBO;
 
-                                            //updateSucessMPNGLogAndToken(this.transID, result, respPush);
+                                        let msg_db = push_result.msg_db as PushMessages;
+
+                                        msg_db.received_time = new Date();
+                                       
+                                        let result: ResultBO
+                                        if ( resp_push.failure == 0 && resp_push.success > 0 ) {
+                                            if (resp_push.canonical_ids > 0) {
+
+                                                result = resp_push.results[0] as ResultBO;
+                                                //responseMessage = createResponseSuccess(result.message_id);
+
+                                                //updateSucessMPNGLogAndToken(this.transID, result, respPush);
+                                            } else {
+                                                result = resp_push.results[0] as ResultBO;
+                                                //responseMessage = createResponseSuccess(result.message_id);
+                                                //updateSucessMPNGLog(this.transID, result, respPush);
+                                            }
+
+                                            msg_db.status = 0;
+                                            
                                         } else {
                                             result = resp_push.results[0] as ResultBO;
                                             //responseMessage = createResponseSuccess(result.message_id);
-                                            //updateSucessMPNGLog(this.transID, result, respPush);
-                                        }
+                                            /*
+                                            if (mapErrorResend.containsKey(result.getError())) {
+                                                // update log to error and resend
+                                                updateFailToReocveryMPNGLog(this.transID, result, respPush);
+                                                insertMPNGRetryLog(this.transID);
+                                            } else {
+                                                // update log to error not resend
+                                                updateErrorMPNGLog(this.transID, result, respPush);
+                                            }
+                                            */
 
-                                    } else {
-                                        result = resp_push.results[0] as ResultBO;
-                                        //responseMessage = createResponseSuccess(result.message_id);
-                                        /*
-                                        if (mapErrorResend.containsKey(result.getError())) {
-                                            // update log to error and resend
-                                            updateFailToReocveryMPNGLog(this.transID, result, respPush);
-                                            insertMPNGRetryLog(this.transID);
-                                        } else {
-                                            // update log to error not resend
-                                            updateErrorMPNGLog(this.transID, result, respPush);
-                                        }
-                                        */
-                                    }    
+                                            msg_db.status = 1;
+                                            msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
+                                            if (result.error) {
+                                                msg_db.error_message = result.error;
+                                            }
+                                            
+                                        }    
+                                        
+                                        Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
 
-                                    //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                    //response.send(JSON.stringify(responseMessage)); 
+                                        //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
+                                        //response.send(JSON.stringify(responseMessage)); 
+                                    }).catch(error => {
+                                        //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
+                                        //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
+                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : "+error.toString()));
+
+                                        msg_db.status = 1;
+                                        msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
+                                        msg_db.error_message = error.toString();
+                                        Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
+
+                                    });
+
                                 }).catch(error => {
-                                    //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
-                                    //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                    Logger.error(MainConst.logPattern(req_id, process.pid, "response : "+error.toString()));
+                                    Logger.error(MainConst.logPattern(req_id, process.pid, "response : error DB : "+error.toString()));
 
-                                });                              
+                                    /*
+                                    msg_db.status = 1;
+                                    msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
+                                    msg_db.error_message = error.toString();
+                                    Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db); 
+                                    */
+                                });    
+                                                              
 
                                 channel.ack(msg); 
 
@@ -225,5 +268,33 @@ export class RabbitMQBroker implements messaging.MessageBroker {
 
 
 };
+
+
+function prepareDBMsgOnReceive(message_content: messaging.MessageContent): PushMessages{
+    let push_message = {
+            id: message_content.record_id,  
+            request_id: message_content.request_id,
+            application_id: "",
+            user_id: "",
+            started_time: new Date(),
+            put_time: new Date(),
+            pulled_time: new Date(),  
+            sent_time: new Date(),
+            received_time: new Date(),
+            elapsed: 0,
+            status: 2, //in process
+            error_code: "",
+	        error_message: "",
+            interface_type: "",
+            message_type: 0,
+            worker_id: process.pid.toString(),
+            push_provider_code: "",
+            push_token_id: "",
+            push_message: {}          
+        } as PushMessages;
+        
+    return push_message;
+}
+
 
 export default RabbitMQBroker;

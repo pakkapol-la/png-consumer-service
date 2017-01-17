@@ -3,7 +3,7 @@ import * as mongoose from "mongoose";
 import Config from "../../common/config";
 import CircuitBreaker from "../../common/circuit-breaker";
 import Database from "../database";
-import {LocationInfo, LocationInfoModel} from "../../models/implementations/mongodb-locationinfo";
+import {PushMessages, PushMessagesModel} from "../../models/implementations/mongodb-pushmessages";
 import Logger from "../../common/logger";
 
 interface MongoDBOptions {
@@ -71,25 +71,66 @@ export default class MongoDBDatabase implements Database {
         });
     }
 
-    getAtmLocation(lat: string, lng: string, distance: string){
-        return new Promise<LocationInfo[]>((resolve, reject) => {
-            if(this.error){
-                return reject(new Error(`DBError: ${this.error}`));
+
+    updatePushMessagesBeforeSent(push_message: PushMessages){
+        return new Promise<PushMessages>((resolve, reject) => {
+            if (this.error) {
+                return reject(`DBError: ${this.error}`);
             }
-            LocationInfoModel.find({
-                    location: {
-                        $near: [parseFloat(lat), parseFloat(lng)],
-                        $minDistance: 0,
-                        $maxDistance: parseFloat(distance)
-                    }
-                })
-                .then(locationInfo => {
-                    return resolve(locationInfo);
-                })
-                .catch(error => {
-                    return reject(new Error(`DBError: ${error}`));
-                });
+            
+            let pushmessages_model = new PushMessagesModel();
+
+            pushmessages_model._id = push_message.id;
+            pushmessages_model.pulled_time = push_message.pulled_time; 
+            pushmessages_model.sent_time = push_message.sent_time;
+            
+            pushmessages_model.update(pushmessages_model,function(err, count) {
+                if (err) {
+                    return reject(`DBError: ${err}`);
+                }
+
+                return resolve(pushmessages_model);
+            });
 
         });
     }
+
+
+    updatePushMessagesAfterSent(push_message: PushMessages){
+        return new Promise<PushMessages>((resolve, reject) => {
+            if (this.error) {
+                return reject(`DBError: ${this.error}`);
+            }
+            
+            let pushmessages_model = new PushMessagesModel();
+
+            pushmessages_model._id = push_message.id;
+            if(push_message.received_time){
+                pushmessages_model.received_time = push_message.received_time;
+            }
+            pushmessages_model.status = push_message.status;
+            /*
+            if(push_message.status){
+                pushmessages_model.status = push_message.status;
+            } 
+            */
+            if(push_message.error_code){
+                pushmessages_model.error_code = push_message.error_code;
+            }            
+            if(push_message.error_message){
+                pushmessages_model.error_message = push_message.error_message;
+            }
+            
+            pushmessages_model.update(pushmessages_model,function(err, count) {
+                if (err) {
+                    return reject(`DBError: ${err}`);
+                }
+
+                return resolve(pushmessages_model);
+            });
+
+        });
+    }
+
+
 }
