@@ -27,13 +27,13 @@ export class PushFCMServiceImpl implements PushFCMService {
                     ""
                 );
             
-            //Logger.info(MainConst.logPattern(request_id, "FCM Push : " + push_url));            
+            //Logger.info(MainConst.logPattern(request_id, process.pid, "FCM Push : " + push_url));            
             let headers = this.createRequestHeader(api_key);
-            Logger.info(MainConst.logPattern(request_id, "Process " + process.pid + " FCM Header : " + JSON.stringify(headers)));
+            //Logger.info(MainConst.logPattern(request_id, process.pid, "FCM Header : " + JSON.stringify(headers)));
            
             let payload = JSON.stringify(req);
 
-            Logger.info(MainConst.logPattern(request_id, "Process " + process.pid + " FCM Payload : " + payload));
+            //Logger.info(MainConst.logPattern(request_id, process.pid, "FCM Payload : " + payload));
            
             Request(push_url)
                 .identifier("fcm-push")
@@ -58,13 +58,12 @@ export class PushFCMServiceImpl implements PushFCMService {
 
 
     private handlePushResponse(request_id: string, response: any) :ResponseFCMBO{
-        Logger.info(MainConst.logPattern(request_id, "Process " + process.pid + " response : statusCode : " + response.statusCode));
+        
         if (response.statusCode) {
-            if (response.statusCode === 200) {
-                //Logger.info(MainConst.logPattern(request_id, "response.body : " + response.body));                
+            if (response.statusCode === 200) {                               
                 if (response.body) {
                     let jsonBody = JSON.parse(response.body) as ResponseFCMBO;
-
+                    Logger.info(MainConst.logPattern(request_id, process.pid, "response : status_code=" + response.statusCode+", FCM result="+JSON.stringify(jsonBody)));
                     return jsonBody;
                     /*
                     Logger.info("jsonBody.success : " + jsonBody.success);

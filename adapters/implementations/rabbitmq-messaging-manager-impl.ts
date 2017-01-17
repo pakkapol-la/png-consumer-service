@@ -23,7 +23,7 @@ export class RabbitMQMessagingManager implements MessagingManager.MessageManager
                 broker.willReceiveMessage();
 
             } catch(error) {
-                Logger.error("Process " + process.pid +` MessageManagerError: ${error.toString()}`);
+                Logger.error(MainConst.logPatternProcessId(process.pid, `MessageManagerError: ${error.toString()}`));
             }   
       
         });

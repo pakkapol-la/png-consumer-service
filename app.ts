@@ -114,7 +114,7 @@ if(cluster.isMaster) {
                 error: any, request: express.Request, response: express.Response,
                 next: express.NextFunction
             ) => {
-                Logger.error('Process ' + process.pid +" status 500 error : ", JSON.stringify(error));
+                Logger.error(MainConst.logPatternProcessId(process.pid, "status 500 error : " + JSON.stringify(error)));
 
                 let responseMessage = new PushRestResponseBO();
                 let err_msg = MainConst.ErrorCode.getErrCode(MainConst.ErrorCode.MPNG000.err_code);
@@ -132,7 +132,7 @@ if(cluster.isMaster) {
             server = app.listen(service_port,
                 () => {
                     //Logger.info("Server start on port ", service_port);
-                    Logger.info('Process ' + process.pid + ' is listening to all incoming requests on port ', service_port);
+                    Logger.info(MainConst.logPatternProcessId(process.pid, 'is listening to all incoming requests on port '+service_port));
                     return resolve(this);            
                 });
         });
@@ -143,7 +143,7 @@ if(cluster.isMaster) {
         MsgManager.listenReceiveMessage();
         
     }).catch(error => {
-        Logger.error(`DBError: ${error}`);
+        Logger.error(MainConst.logPatternProcessId(process.pid, `DBError: ${error}`));
     });
 
 }    

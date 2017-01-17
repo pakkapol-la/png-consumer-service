@@ -1,9 +1,15 @@
+
 import { BaseRestBO } from "./baserestbo";
 import { ParamPushBO } from "../push/parampushbo";
 
 export class PushRestRequestBO extends BaseRestBO {  
+        
+    user_id?: string;
+    application_id?: string;    // MyMoGSB
+    interface_type?: string;    // O - ONLINE , B - BATCH
+    message_type?: string;      // Corresponding to Inbox Type
     
-    data_push: ParamPushBO;
+    push_message: ParamPushBO;
 
 }
 
