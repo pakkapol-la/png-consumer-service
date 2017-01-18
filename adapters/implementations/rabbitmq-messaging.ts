@@ -222,7 +222,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                     }).catch(error => {
                                         //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
                                         //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : "+error.toString()));
+                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : "+JSON.stringify(error.toString())));
 
                                         msg_db.status = 1;
                                         msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
@@ -232,7 +232,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                     });
 
                                 }).catch(error => {
-                                    Logger.error(MainConst.logPattern(req_id, process.pid, "response : error DB : "+error.toString()));
+                                    Logger.error(MainConst.logPattern(req_id, process.pid, "response : error DB : "+JSON.stringify(error.toString())));
 
                                     /*
                                     msg_db.status = 1;
