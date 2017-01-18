@@ -31,6 +31,7 @@ export class ErrorCode {
     public static MPNG004: ErrorMsg = new ErrorMsg("MPNG004","invalid appID");
     public static MPNG005: ErrorMsg = new ErrorMsg("MPNG005","data_push object is required");
     public static MPNG006: ErrorMsg = new ErrorMsg("MPNG006","push provider error");
+    public static MPNG007: ErrorMsg = new ErrorMsg("MPNG007","con not find push token");
 
     public static getErrCode(err_code: string): ErrorMsg {
         if (null == ErrorCode.error_code_map) {
@@ -42,6 +43,7 @@ export class ErrorCode {
             ErrorCode.error_code_map[ErrorCode.MPNG004.err_code] = ErrorCode.MPNG004;
             ErrorCode.error_code_map[ErrorCode.MPNG005.err_code] = ErrorCode.MPNG005;
             ErrorCode.error_code_map[ErrorCode.MPNG006.err_code] = ErrorCode.MPNG006;
+            ErrorCode.error_code_map[ErrorCode.MPNG007.err_code] = ErrorCode.MPNG007;
         }
         return ErrorCode.error_code_map[err_code];
     }
