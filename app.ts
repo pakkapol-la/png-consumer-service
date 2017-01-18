@@ -122,7 +122,7 @@ if(cluster.isMaster) {
                 responseMessage.status = MainConst.StatusConstant.STATUS_FAIL; // 0 = success , 1 = fail    
                 responseMessage.error_code = err_msg.err_code;
                 responseMessage.error_message = "Internal server error. Please try again later. : " + err_msg.err_msg + " : " + JSON.stringify(error);
-                responseMessage.response_id = MainConst.genResponseId();
+                responseMessage.response_id = MainConst.genResponseId(process.pid.toString());
 
                 response.status(500).send(responseMessage);
                 next();

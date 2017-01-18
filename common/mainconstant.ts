@@ -50,10 +50,10 @@ export class ErrorCode {
 } 
 
 
-export function genResponseId(): string {
+export function genResponseId(process_is: string): string {
     let dt = new Date();
 
-    return dt.getFullYear().toString() + (dt.getMonth() + 1).toString() + dt.getDate() + dt.getHours() + dt.getMinutes() + dt.getSeconds() + dt.getMilliseconds();
+    return process_is + "-" + dt.getFullYear().toString() + (dt.getMonth() + 1).toString() + dt.getDate() + dt.getHours() + dt.getMinutes() + dt.getSeconds() + dt.getMilliseconds();
 }
 
 /*
