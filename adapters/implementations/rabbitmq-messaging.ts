@@ -148,7 +148,13 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                             Logger.info(MainConst.logPatternProcessId(process.pid, "[*] Waiting for messages in "+this.qname+". To exit press CTRL+C"));
 
                             channel.consume(this.qname, function (msg: any) {
-
+                                
+                                let process_log_db: boolean =  Config.get<boolean>(
+                                    "mpng-service",
+                                    "process-log-db",
+                                    true
+                                    );
+                                    
                                 Logger.info(MainConst.logPatternProcessId(process.pid, "MessageBroker Receiver : "+ msg.content.toString()));
 
                                 let msg_content: messaging.MessageContent = JSON.parse(msg.content.toString());
@@ -164,91 +170,163 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                 let req_id = msg_content.request_id;
 
                                 msg_db.sent_time = new Date();
-                               
-                                Routes.getFactoryService().db_service.updatePushMessagesBeforeSent(msg_db).then(push_message_document => {
 
-                                    fcm_service.send(msg_content.request_id, api_key, req_push, msg_db).then(push_result => {
+                                if (process_log_db) {
 
-                                        //Logger.info(MainConst.logPattern(req_id, process.pid, "FCM result : " + JSON.stringify(resp_push)));
-                                        
-                                        let resp_push = push_result.push_result as ResponseFCMBO;
+                                    Routes.getFactoryService().db_service.updatePushMessagesBeforeSent(msg_db).then(push_message_document => {
 
-                                        let msg_db = push_result.msg_db as PushMessages;
+                                        fcm_service.send(msg_content.request_id, api_key, req_push, msg_db).then(push_result => {
 
-                                        msg_db.received_time = new Date();
-                                       
-                                        let result: ResultBO
-                                        if ( resp_push.failure == 0 && resp_push.success > 0 ) {
-                                            if (resp_push.canonical_ids > 0) {
-
-                                                result = resp_push.results[0] as ResultBO;
-                                                //responseMessage = createResponseSuccess(result.message_id);
-
-                                                //updateSucessMPNGLogAndToken(this.transID, result, respPush);
-                                            } else {
-                                                result = resp_push.results[0] as ResultBO;
-                                                //responseMessage = createResponseSuccess(result.message_id);
-                                                //updateSucessMPNGLog(this.transID, result, respPush);
-                                            }
-
-                                            msg_db.status = 0;
+                                            //Logger.info(MainConst.logPattern(req_id, process.pid, "FCM result : " + JSON.stringify(resp_push)));
                                             
-                                        } else {
-                                            result = resp_push.results[0] as ResultBO;
-                                            //responseMessage = createResponseSuccess(result.message_id);
-                                            /*
-                                            if (mapErrorResend.containsKey(result.getError())) {
-                                                // update log to error and resend
-                                                updateFailToReocveryMPNGLog(this.transID, result, respPush);
-                                                insertMPNGRetryLog(this.transID);
+                                            let resp_push = push_result.push_result as ResponseFCMBO;
+
+                                            let msg_db = push_result.msg_db as PushMessages;
+
+                                            msg_db.received_time = new Date();
+                                        
+                                            let result: ResultBO
+                                            if ( resp_push.failure == 0 && resp_push.success > 0 ) {
+                                                if (resp_push.canonical_ids > 0) {
+
+                                                    result = resp_push.results[0] as ResultBO;
+                                                    //responseMessage = createResponseSuccess(result.message_id);
+
+                                                    //updateSucessMPNGLogAndToken(this.transID, result, respPush);
+                                                } else {
+                                                    result = resp_push.results[0] as ResultBO;
+                                                    //responseMessage = createResponseSuccess(result.message_id);
+                                                    //updateSucessMPNGLog(this.transID, result, respPush);
+                                                }
+
+                                                msg_db.status = 0;
+                                                
                                             } else {
-                                                // update log to error not resend
-                                                updateErrorMPNGLog(this.transID, result, respPush);
-                                            }
-                                            */
+                                                result = resp_push.results[0] as ResultBO;
+                                                //responseMessage = createResponseSuccess(result.message_id);
+                                                /*
+                                                if (mapErrorResend.containsKey(result.getError())) {
+                                                    // update log to error and resend
+                                                    updateFailToReocveryMPNGLog(this.transID, result, respPush);
+                                                    insertMPNGRetryLog(this.transID);
+                                                } else {
+                                                    // update log to error not resend
+                                                    updateErrorMPNGLog(this.transID, result, respPush);
+                                                }
+                                                */
+
+                                                msg_db.status = 1;
+                                                msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
+                                                if (result.error) {
+                                                    msg_db.error_message = result.error;
+                                                }
+                                                
+                                            }    
+                                            
+                                            Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
+
+                                            //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
+                                            //response.send(JSON.stringify(responseMessage)); 
+                                        }).catch(error => {
+                                            //error send FCM
+
+                                            //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
+                                            //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
+                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , send push "+JSON.stringify(error.toString())));
 
                                             msg_db.status = 1;
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
-                                            if (result.error) {
-                                                msg_db.error_message = result.error;
-                                            }
-                                            
-                                        }    
-                                        
-                                        Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
+                                            msg_db.error_message = error.toString();
+                                            Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
 
-                                        //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                        //response.send(JSON.stringify(responseMessage)); 
+                                        });
+
                                     }).catch(error => {
-                                        //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
-                                        //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : "+JSON.stringify(error.toString())));
+                                        //error update DB
+                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , DB "+JSON.stringify(error.toString())));
 
+                                        /*
                                         msg_db.status = 1;
                                         msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                         msg_db.error_message = error.toString();
-                                        Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
-
+                                        Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db); 
+                                        */
                                     });
+                                } else {
 
-                                }).catch(error => {
-                                    Logger.error(MainConst.logPattern(req_id, process.pid, "response : error DB : "+JSON.stringify(error.toString())));
+                                    // case not log in DB   
+                                    fcm_service.send(msg_content.request_id, api_key, req_push, msg_db).then(push_result => {
 
-                                    /*
-                                    msg_db.status = 1;
-                                    msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
-                                    msg_db.error_message = error.toString();
-                                    Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db); 
-                                    */
-                                });    
-                                                              
+                                            //Logger.info(MainConst.logPattern(req_id, process.pid, "FCM result : " + JSON.stringify(resp_push)));
+                                            
+                                            let resp_push = push_result.push_result as ResponseFCMBO;
+
+                                            let msg_db = push_result.msg_db as PushMessages;
+
+                                            msg_db.received_time = new Date();
+                                        
+                                            let result: ResultBO
+                                            if ( resp_push.failure == 0 && resp_push.success > 0 ) {
+                                                if (resp_push.canonical_ids > 0) {
+
+                                                    result = resp_push.results[0] as ResultBO;
+                                                    //responseMessage = createResponseSuccess(result.message_id);
+
+                                                    //updateSucessMPNGLogAndToken(this.transID, result, respPush);
+                                                } else {
+                                                    result = resp_push.results[0] as ResultBO;
+                                                    //responseMessage = createResponseSuccess(result.message_id);
+                                                    //updateSucessMPNGLog(this.transID, result, respPush);
+                                                }
+
+                                                msg_db.status = 0;
+                                                
+                                            } else {
+                                                result = resp_push.results[0] as ResultBO;
+                                                //responseMessage = createResponseSuccess(result.message_id);
+                                                /*
+                                                if (mapErrorResend.containsKey(result.getError())) {
+                                                    // update log to error and resend
+                                                    updateFailToReocveryMPNGLog(this.transID, result, respPush);
+                                                    insertMPNGRetryLog(this.transID);
+                                                } else {
+                                                    // update log to error not resend
+                                                    updateErrorMPNGLog(this.transID, result, respPush);
+                                                }
+                                                */
+
+                                                msg_db.status = 1;
+                                                msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
+                                                if (result.error) {
+                                                    msg_db.error_message = result.error;
+                                                }
+                                                
+                                            }    
+                                            
+                                            //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
+                                            //response.send(JSON.stringify(responseMessage)); 
+                                        }).catch(error => {
+                                            //error send FCM
+                                            
+                                            //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
+                                            //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
+                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , send push "+JSON.stringify(error.toString())));
+
+                                            msg_db.status = 1;
+                                            msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
+                                            msg_db.error_message = error.toString();
+                                           
+                                        });
+
+                                }                                                                                
 
                                 channel.ack(msg); 
 
                             }, { noAck: false });                       
 
                          } catch(error) {
-                            Logger.error(MainConst.logPatternProcessId(process.pid, `MessageBrokerError: ${error.toString()}`));
+                             //error initial queue consume
+                            Logger.error(MainConst.logPatternProcessId(process.pid, `response : error , MessageBrokerError: ${error.toString()}`));
                          }    
                  /*
                  }).catch(error => {
@@ -258,8 +336,9 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                  */
 
             }).catch(error => {
+                //error create channel
                 //return reject(new Error(`MessageBrokerError: ${error.toString()}`));
-                Logger.error(MainConst.logPatternProcessId(process.pid, `MessageBrokerError: ${error.toString()}`));
+                Logger.error(MainConst.logPatternProcessId(process.pid, `response : error , MessageBrokerError: ${error.toString()}`));
             });
             
 

@@ -74,7 +74,7 @@ export class PushFCMServiceImpl implements PushFCMService {
             if (response.statusCode === 200) {                               
                 if (response.body) {
                     let jsonBody = JSON.parse(response.body) as ResponseFCMBO;
-                    Logger.info(MainConst.logPattern(request_id, process.pid, "response : status_code=" + response.statusCode+", FCM result="+JSON.stringify(jsonBody)));
+                    Logger.info(MainConst.logPattern(request_id, process.pid, "response : success , status_code=" + response.statusCode+", FCM result="+JSON.stringify(jsonBody)));
                     return jsonBody;
                     /*
                     Logger.info("jsonBody.success : " + jsonBody.success);
@@ -95,6 +95,7 @@ export class PushFCMServiceImpl implements PushFCMService {
 
                 }
             } else {
+                //Logger.info(MainConst.logPattern(request_id, process.pid, "response : error , status_code=" + response.statusCode+" , "+response.statusMessage));
                 throw new Error(
                     response.statusCode + ", " +
                     response.statusMessage
