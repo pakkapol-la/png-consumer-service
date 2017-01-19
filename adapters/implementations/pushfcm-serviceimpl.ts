@@ -8,6 +8,7 @@ import * as _ from "lodash";
 import * as MainConst from "../../common/mainconstant";
 import PushMessages from "../../models/pushmessages";
 
+//import Request from "../../common/request-post";
 
 export class PushResult {
     push_result: ResponseFCMBO;
@@ -42,7 +43,9 @@ export class PushFCMServiceImpl implements PushFCMService {
             let payload = JSON.stringify(req);
 
             //Logger.info(MainConst.logPattern(request_id, process.pid, "FCM Payload : " + payload));
-           
+            
+            /*Request(push_url)
+                .sendPost(headers, payload)*/
             Request(push_url)
                 .identifier("fcm-push")
                 .post(payload, headers)
@@ -104,7 +107,7 @@ export class PushFCMServiceImpl implements PushFCMService {
         }
 
         throw new Error(
-            "E:0000" + ", " + "Invalid response"
+            "E:0000" + ", " + "Invalid response : " + JSON.stringify(response)
         );
     }
 
