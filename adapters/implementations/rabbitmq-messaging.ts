@@ -232,8 +232,9 @@ export class RabbitMQBroker implements messaging.MessageBroker {
 
                                             //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
                                             //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , send push "+JSON.stringify(error.toString())));
+                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , send push "+JSON.stringify(error.stack)));
 
+                                            msg_db.received_time = new Date();
                                             msg_db.status = 1;
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.toString();
@@ -243,7 +244,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
 
                                     }).catch(error => {
                                         //error update DB
-                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , DB "+JSON.stringify(error.toString())));
+                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , DB "+JSON.stringify(error.stack)));
 
                                         /*
                                         msg_db.status = 1;
@@ -310,8 +311,9 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             
                                             //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
                                             //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , send push "+JSON.stringify(error.toString())));
+                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error , send push "+JSON.stringify(error.stack)));
 
+                                            msg_db.received_time = new Date();
                                             msg_db.status = 1;
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.toString();
@@ -326,7 +328,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
 
                          } catch(error) {
                              //error initial queue consume
-                            Logger.error(MainConst.logPatternProcessId(process.pid, `response : error , MessageBrokerError: ${error.toString()}`));
+                            Logger.error(MainConst.logPatternProcessId(process.pid, `response : error , MessageBrokerError: ${error.stack}`));
                          }    
                  /*
                  }).catch(error => {
@@ -338,7 +340,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
             }).catch(error => {
                 //error create channel
                 //return reject(new Error(`MessageBrokerError: ${error.toString()}`));
-                Logger.error(MainConst.logPatternProcessId(process.pid, `response : error , MessageBrokerError: ${error.toString()}`));
+                Logger.error(MainConst.logPatternProcessId(process.pid, `response : error , MessageBrokerError: ${error.stack}`));
             });
             
 
