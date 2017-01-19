@@ -232,24 +232,26 @@ export class RabbitMQBroker implements messaging.MessageBroker {
 
                                             //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
                                             //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+JSON.stringify(error.stack)));
+                                            //Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+JSON.stringify(error.stack)));
+                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
 
                                             msg_db.received_time = new Date();
                                             msg_db.status = 1;
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
-                                            msg_db.error_message = error.toString();
+                                            msg_db.error_message = error.stack;
                                             Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
 
                                         });
 
                                     }).catch(error => {
                                         //error update DB
-                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=DB "+JSON.stringify(error.stack)));
+                                        //Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=DB "+JSON.stringify(error.stack)));
+                                        Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=DB "+error.stack));
 
                                         /*
                                         msg_db.status = 1;
                                         msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
-                                        msg_db.error_message = error.toString();
+                                        msg_db.error_message = error.stack;
                                         Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db); 
                                         */
                                     });
@@ -311,12 +313,13 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             
                                             //let responseMessage = createResponseError(MainConst.ErrorCode.MPNG001.err_code, error.toString()) as PushRestResponseBO;
                                             //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+JSON.stringify(error.stack)));
+                                            //Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+JSON.stringify(error.stack)));
+                                            Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
 
                                             msg_db.received_time = new Date();
                                             msg_db.status = 1;
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
-                                            msg_db.error_message = error.toString();
+                                            msg_db.error_message = error.stack;
                                            
                                         });
 

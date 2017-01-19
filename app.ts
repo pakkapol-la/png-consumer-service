@@ -17,7 +17,7 @@ import RabbitMQMessagingManager from "./adapters/implementations/rabbitmq-messag
 import * as os from "os";
 import * as cluster from "cluster";
 import * as FactoryService from "./common/factory-service";
-
+   
 
 if(cluster.isMaster) {
     let numWorkers = Config.get<number>(
