@@ -27,23 +27,28 @@ export default class MongoDBDatabase implements Database {
                 .then(() => {
                     this.error = null;
                     Logger.info('mongoose.connected.......');
-                    Logger.info('CircuitBreaker.reportState...close....');
-                    CircuitBreaker.reportState("db", "close");
+                    //Logger.info('CircuitBreaker.reportState...close....');
+                    //CircuitBreaker.reportState("db", "close");
                     mongoose.connection.on("error", (error: any) => {
                         mongoose.connection.db.close();
                         this.error = error;
+                        return reject(error);
+                        /*
                         CircuitBreaker.reportState("db", "open");
                         return bluebird.delay(
                             this.options.reconnectionTime || 5000
                         ).then(() => {
                             return this.connect(url, options);
                         });
+                        */
                     });
                     return resolve(this);
                 })
                 .catch(error => {
                     this.error = error;
                     Logger.info('mongoose.connect error.......' + error);
+                    return reject(error);
+                    /*
                     Logger.info('CircuitBreaker.reportState...open....');
                     CircuitBreaker.reportState("db", "open");
                     return bluebird.delay(
@@ -51,6 +56,7 @@ export default class MongoDBDatabase implements Database {
                     ).then(() => {
                         return this.connect(url, options);
                     });
+                    */
                 });
         });
     }
@@ -61,8 +67,10 @@ export default class MongoDBDatabase implements Database {
                 .then(() => {
                     this.error = "not connected";
                     Logger.info('mongoose.disconnect');
+                    /*
                     Logger.info('CircuitBreaker.reportState...open....');
                     CircuitBreaker.reportState("db", "open");
+                    */
                     return resolve();
                 })
                 .catch(error => {
