@@ -58,7 +58,7 @@ const PushMessagesSchema = new mongoose.Schema({
         type: Number,
         required: false
     },
-     status: {
+    status: {
         type: Number,
         required: false
     },

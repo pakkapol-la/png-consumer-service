@@ -84,8 +84,12 @@ export default class MongoDBDatabase implements Database {
             let pushmessages_model = new PushMessagesModel();
             
             pushmessages_model._id = push_message.id;
-            pushmessages_model.pulled_time = push_message.pulled_time; 
-            pushmessages_model.sent_time = push_message.sent_time;
+            if(push_message.pulled_time){
+                pushmessages_model.pulled_time = push_message.pulled_time; 
+            }
+            if(push_message.sent_time){
+                pushmessages_model.sent_time = push_message.sent_time;
+            }
             
             pushmessages_model.update(pushmessages_model,function(err, count) {
                 if (err) {

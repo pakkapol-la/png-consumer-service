@@ -236,7 +236,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
 
                                             msg_db.received_time = new Date();
-                                            msg_db.status = 1;
+                                            msg_db.status = 2;
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.toString();
                                             Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
@@ -317,7 +317,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
 
                                             msg_db.received_time = new Date();
-                                            msg_db.status = 1;
+                                            msg_db.status = 2;
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.stack;
                                            
@@ -360,13 +360,13 @@ function prepareDBMsgOnReceive(message_content: messaging.MessageContent): PushM
             request_id: message_content.request_id,
             application_id: "",
             user_id: "",
-            started_time: new Date(),
-            put_time: new Date(),
+            //started_time: new Date(),
+            //put_time: new Date(),
             pulled_time: new Date(),  
-            sent_time: new Date(),
-            received_time: new Date(),
+            //sent_time: new Date(),
+            //received_time: new Date(),
             elapsed: 0,
-            status: 2, //in process
+            //status: 2, //in process
             error_code: "",
 	        error_message: "",
             interface_type: "",
