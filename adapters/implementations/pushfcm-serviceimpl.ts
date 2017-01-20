@@ -100,8 +100,7 @@ export class PushFCMServiceImpl implements PushFCMService {
             } else {
                 //Logger.info(MainConst.logPattern(request_id, process.pid, "response : error , status_code=" + response.statusCode+" , "+response.statusMessage));
                 throw new Error(
-                    response.statusCode + ", " +
-                    response.statusMessage
+                    response.statusCode + ", " + response.statusMessage
                 );
             }
         }

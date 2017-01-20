@@ -238,7 +238,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             msg_db.received_time = new Date();
                                             msg_db.status = 1;
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
-                                            msg_db.error_message = error.stack;
+                                            msg_db.error_message = error.toString();
                                             Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
 
                                         });

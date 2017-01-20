@@ -66,7 +66,8 @@ export default class MongoDBDatabase implements Database {
                     return resolve();
                 })
                 .catch(error => {
-                    return reject(new Error(`DBError: ${error}`));
+                    //return reject(new Error(`DBError: ${error}`));
+                    return reject(error);
                 });
         });
     }
@@ -74,9 +75,11 @@ export default class MongoDBDatabase implements Database {
 
     updatePushMessagesBeforeSent(push_message: PushMessages){
         return new Promise<PushMessages>((resolve, reject) => {
+            /*
             if (this.error) {
                 return reject(`DBError: ${this.error}`);
             }
+            */
             
             let pushmessages_model = new PushMessagesModel();
             
@@ -86,7 +89,8 @@ export default class MongoDBDatabase implements Database {
             
             pushmessages_model.update(pushmessages_model,function(err, count) {
                 if (err) {
-                    return reject(`DBError: ${err}`);
+                    //return reject(`DBError: ${err}`);
+                    return reject(err);
                 }
 
                 return resolve(pushmessages_model);
@@ -98,10 +102,11 @@ export default class MongoDBDatabase implements Database {
 
     updatePushMessagesAfterSent(push_message: PushMessages){
         return new Promise<PushMessages>((resolve, reject) => {
+            /*
             if (this.error) {
                 return reject(`DBError: ${this.error}`);
             }
-            
+            */
             let pushmessages_model = new PushMessagesModel();
 
             pushmessages_model._id = push_message.id;
@@ -123,7 +128,8 @@ export default class MongoDBDatabase implements Database {
             
             pushmessages_model.update(pushmessages_model,function(err, count) {
                 if (err) {
-                    return reject(`DBError: ${err}`);
+                    //return reject(`DBError: ${err}`);
+                    return reject(err);
                 }
 
                 return resolve(pushmessages_model);
