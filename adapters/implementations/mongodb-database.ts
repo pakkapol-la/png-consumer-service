@@ -122,19 +122,22 @@ export default class MongoDBDatabase implements Database {
             let pushmessages_model = new PushMessagesModel();
 
             pushmessages_model._id = push_message.id;
-            if(push_message.received_time){
+            if (push_message.received_time) {
                 pushmessages_model.received_time = push_message.received_time;
             }
+            if (push_message.elapsed && push_message.elapsed != 0) {
+                pushmessages_model.elapsed = push_message.elapsed;
+            } 
             pushmessages_model.status = push_message.status;
             /*
             if(push_message.status){
                 pushmessages_model.status = push_message.status;
             } 
             */
-            if(push_message.error_code){
+            if (push_message.error_code) {
                 pushmessages_model.error_code = push_message.error_code;
-            }            
-            if(push_message.error_message){
+            }
+            if (push_message.error_message) {
                 pushmessages_model.error_message = push_message.error_message;
             }
             

@@ -4,6 +4,7 @@ export interface MessageContent {
     response_id: string;
     server_key: string;
     platform: string;
+    started_time: Date;
     content: any;   
 };
 

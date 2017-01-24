@@ -184,7 +184,8 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             let msg_db = push_result.msg_db as PushMessages;
 
                                             msg_db.received_time = new Date();
-                                        
+                                            msg_db.elapsed = calculateElapsed(msg_db);
+
                                             let result: ResultBO
                                             if ( resp_push.failure == 0 && resp_push.success > 0 ) {
                                                 if (resp_push.canonical_ids > 0) {
@@ -236,6 +237,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
 
                                             msg_db.received_time = new Date();
+                                            msg_db.elapsed = calculateElapsed(msg_db);
                                             msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL_SENT; //2 fail when send to FCM
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.toString();
@@ -267,7 +269,8 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             let msg_db = push_result.msg_db as PushMessages;
 
                                             msg_db.received_time = new Date();
-                                        
+                                            msg_db.elapsed = calculateElapsed(msg_db);
+
                                             let result: ResultBO
                                             if ( resp_push.failure == 0 && resp_push.success > 0 ) {
                                                 if (resp_push.canonical_ids > 0) {
@@ -317,6 +320,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
 
                                             msg_db.received_time = new Date();
+                                            msg_db.elapsed = calculateElapsed(msg_db);
                                             msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL_SENT; //2 fail when send to FCM
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.stack;
@@ -360,7 +364,7 @@ function prepareDBMsgOnReceive(message_content: messaging.MessageContent): PushM
             request_id: message_content.request_id,
             application_id: "",
             user_id: "",
-            //started_time: new Date(),
+            started_time: new Date(message_content.started_time), //get started_time to calculate elapsed
             //put_time: new Date(),
             pulled_time: new Date(),  
             //sent_time: new Date(),
@@ -378,6 +382,15 @@ function prepareDBMsgOnReceive(message_content: messaging.MessageContent): PushM
         } as PushMessages;
         
     return push_message;
+}
+
+function calculateElapsed(msg_db: PushMessages): number {
+    if (msg_db.received_time) {
+        if (msg_db.started_time) {           
+            return ( msg_db.received_time.getTime() - msg_db.started_time.getTime() );
+        }
+    }
+    return 0;
 }
 
 
