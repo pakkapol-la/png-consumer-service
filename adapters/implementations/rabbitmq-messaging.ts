@@ -199,7 +199,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                                     //updateSucessMPNGLog(this.transID, result, respPush);
                                                 }
 
-                                                msg_db.status = 0;
+                                                msg_db.status = MainConst.PushMessagesStatus.STATUS_SUCCESS; //0 sent success
                                                 
                                             } else {
                                                 result = resp_push.results[0] as ResultBO;
@@ -215,7 +215,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                                 }
                                                 */
 
-                                                msg_db.status = 1;
+                                                msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL; //1 sent to FCM success but result not success
                                                 msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                                 if (result.error) {
                                                     msg_db.error_message = result.error;
@@ -236,7 +236,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
 
                                             msg_db.received_time = new Date();
-                                            msg_db.status = 2;
+                                            msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL_SENT; //2 fail when send to FCM
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.toString();
                                             Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
@@ -282,7 +282,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                                     //updateSucessMPNGLog(this.transID, result, respPush);
                                                 }
 
-                                                msg_db.status = 0;
+                                                msg_db.status = MainConst.PushMessagesStatus.STATUS_SUCCESS; //0 sent success
                                                 
                                             } else {
                                                 result = resp_push.results[0] as ResultBO;
@@ -298,7 +298,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                                 }
                                                 */
 
-                                                msg_db.status = 1;
+                                                msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL; //1 sent to FCM success but result not success
                                                 msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                                 if (result.error) {
                                                     msg_db.error_message = result.error;
@@ -317,7 +317,7 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
 
                                             msg_db.received_time = new Date();
-                                            msg_db.status = 2;
+                                            msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL_SENT; //2 fail when send to FCM
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.stack;
                                            
