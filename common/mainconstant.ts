@@ -5,10 +5,12 @@ export class StatusConstant {
 }  
 
 export class PushMessagesStatus { 
-    public static STATUS_SUCCESS: number = 0; 
-    public static STATUS_FAIL: number = 1;
-    public static STATUS_FAIL_SENT: number = 2;
-    public static STATUS_IN_PROCESS: number = 99;
+    public static STATUS_SUCCESS: number = 0; //can send push and result success
+    public static STATUS_FAIL: number = 1;  //can send push and result error
+    public static STATUS_FAIL_SENT: number = 2; //error can not connect to push
+    public static STATUS_FAIL_AFTER_SENT: number = 3; //can send push but mananage result or update after sent has error
+    public static STATUS_IN_PROCESS_BEFORE_SENT: number = 98; //in process before sent push
+    public static STATUS_IN_PROCESS: number = 99; //in process before push queue
 } 
 
 export class PlatformConstant { 

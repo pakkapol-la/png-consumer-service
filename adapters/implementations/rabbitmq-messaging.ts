@@ -177,57 +177,68 @@ export class RabbitMQBroker implements messaging.MessageBroker {
 
                                         fcm_service.send(msg_content.request_id, api_key, req_push, msg_db).then(push_result => {
 
-                                            //Logger.info(MainConst.logPattern(req_id, process.pid, "FCM result : " + JSON.stringify(resp_push)));
-                                            
-                                            let resp_push = push_result.push_result as ResponseFCMBO;
+                                            try {
 
-                                            let msg_db = push_result.msg_db as PushMessages;
+                                                //Logger.info(MainConst.logPattern(req_id, process.pid, "FCM result : " + JSON.stringify(resp_push)));
+                                                
+                                                let resp_push = push_result.push_result as ResponseFCMBO;
 
-                                            msg_db.received_time = new Date();
-                                            msg_db.elapsed = calculateElapsed(msg_db);
+                                                let msg_db = push_result.msg_db as PushMessages;
 
-                                            let result: ResultBO
-                                            if ( resp_push.failure == 0 && resp_push.success > 0 ) {
-                                                if (resp_push.canonical_ids > 0) {
+                                                msg_db.received_time = new Date();
+                                                msg_db.elapsed = calculateElapsed(msg_db);
 
-                                                    result = resp_push.results[0] as ResultBO;
-                                                    //responseMessage = createResponseSuccess(result.message_id);
+                                                let result: ResultBO
+                                                if ( resp_push.failure == 0 && resp_push.success > 0 ) {
+                                                    if (resp_push.canonical_ids > 0) {
 
-                                                    //updateSucessMPNGLogAndToken(this.transID, result, respPush);
+                                                        result = resp_push.results[0] as ResultBO;
+                                                        //responseMessage = createResponseSuccess(result.message_id);
+
+                                                        //updateSucessMPNGLogAndToken(this.transID, result, respPush);
+                                                    } else {
+                                                        result = resp_push.results[0] as ResultBO;
+                                                        //responseMessage = createResponseSuccess(result.message_id);
+                                                        //updateSucessMPNGLog(this.transID, result, respPush);
+                                                    }
+
+                                                    msg_db.status = MainConst.PushMessagesStatus.STATUS_SUCCESS; //0 sent success
+                                                    
                                                 } else {
                                                     result = resp_push.results[0] as ResultBO;
                                                     //responseMessage = createResponseSuccess(result.message_id);
-                                                    //updateSucessMPNGLog(this.transID, result, respPush);
-                                                }
+                                                    /*
+                                                    if (mapErrorResend.containsKey(result.getError())) {
+                                                        // update log to error and resend
+                                                        updateFailToReocveryMPNGLog(this.transID, result, respPush);
+                                                        insertMPNGRetryLog(this.transID);
+                                                    } else {
+                                                        // update log to error not resend
+                                                        updateErrorMPNGLog(this.transID, result, respPush);
+                                                    }
+                                                    */
 
-                                                msg_db.status = MainConst.PushMessagesStatus.STATUS_SUCCESS; //0 sent success
+                                                    msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL; //1 sent to FCM success but result not success
+                                                    msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
+                                                    if (result.error) {
+                                                        msg_db.error_message = result.error;
+                                                    }
+                                                    
+                                                }    
                                                 
-                                            } else {
-                                                result = resp_push.results[0] as ResultBO;
-                                                //responseMessage = createResponseSuccess(result.message_id);
-                                                /*
-                                                if (mapErrorResend.containsKey(result.getError())) {
-                                                    // update log to error and resend
-                                                    updateFailToReocveryMPNGLog(this.transID, result, respPush);
-                                                    insertMPNGRetryLog(this.transID);
-                                                } else {
-                                                    // update log to error not resend
-                                                    updateErrorMPNGLog(this.transID, result, respPush);
-                                                }
-                                                */
+                                                Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
 
-                                                msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL; //1 sent to FCM success but result not success
-                                                msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
-                                                if (result.error) {
-                                                    msg_db.error_message = result.error;
-                                                }
-                                                
+                                                //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
+                                                //response.send(JSON.stringify(responseMessage)); 
+
+                                            } catch(error) {                                               
+                                                //error manage result push
+                                                Logger.error(MainConst.logPatternProcessId(process.pid, "response : error=manage result push "+error.stack));
+
+                                                //3 fail when manage result push
+                                                updatePushMessagesAfterSent(msg_db, MainConst.PushMessagesStatus.STATUS_FAIL_AFTER_SENT, MainConst.ErrorCode.MPNG001.err_code, error.toString());
                                             }    
-                                            
-                                            Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
 
-                                            //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
-                                            //response.send(JSON.stringify(responseMessage)); 
                                         }).catch(error => {
                                             //error send FCM
 
@@ -235,14 +246,17 @@ export class RabbitMQBroker implements messaging.MessageBroker {
                                             //Logger.info(MainConst.logPattern(req_id, "response : "+JSON.stringify(responseMessage)));
                                             //Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+JSON.stringify(error.stack)));
                                             Logger.error(MainConst.logPattern(req_id, process.pid, "response : error=send push "+error.stack));
-
+                                            /*
                                             msg_db.received_time = new Date();
                                             msg_db.elapsed = calculateElapsed(msg_db);
                                             msg_db.status = MainConst.PushMessagesStatus.STATUS_FAIL_SENT; //2 fail when send to FCM
                                             msg_db.error_code = MainConst.ErrorCode.MPNG006.err_code;
                                             msg_db.error_message = error.toString();
                                             Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
+                                            */
 
+                                            //2 fail when send to FCM
+                                            updatePushMessagesAfterSent(msg_db, MainConst.PushMessagesStatus.STATUS_FAIL_SENT, MainConst.ErrorCode.MPNG006.err_code, error.toString());
                                         });
 
                                     }).catch(error => {
@@ -391,6 +405,23 @@ function calculateElapsed(msg_db: PushMessages): number {
         }
     }
     return 0;
+}
+
+
+function updatePushMessagesAfterSent(msg_db: PushMessages, status: number, error_code: string, error_msg: string) {
+    try {
+
+        msg_db.received_time = new Date();
+        msg_db.elapsed = calculateElapsed(msg_db);
+        msg_db.status = status;
+        msg_db.error_code = error_code;
+        msg_db.error_message = error_msg;
+        Routes.getFactoryService().db_service.updatePushMessagesAfterSent(msg_db);
+
+    } catch (error) {
+        //error update PushMessages After Sent
+        Logger.error(MainConst.logPatternProcessId(process.pid, "subresponse : error=updatePushMessagesAfterSent "+error.stack));
+    }
 }
 
 

@@ -5,6 +5,7 @@ import CircuitBreaker from "../../common/circuit-breaker";
 import Database from "../database";
 import {PushMessages, PushMessagesModel} from "../../models/implementations/mongodb-pushmessages";
 import Logger from "../../common/logger";
+import * as MainConst from "../../common/mainconstant";
 
 interface MongoDBOptions {
     reconnectionTime?: number;
@@ -98,6 +99,8 @@ export default class MongoDBDatabase implements Database {
             if(push_message.sent_time){
                 pushmessages_model.sent_time = push_message.sent_time;
             }
+
+            pushmessages_model.status = MainConst.PushMessagesStatus.STATUS_IN_PROCESS_BEFORE_SENT; //98 in process before sent
             
             pushmessages_model.update(pushmessages_model,function(err, count) {
                 if (err) {
